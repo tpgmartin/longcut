@@ -28,7 +28,7 @@ interface ParsedTopic {
 }
 
 const DEFAULT_AI_MODEL =
-  process.env.AI_DEFAULT_MODEL ?? 'grok-4-1-fast-non-reasoning';
+  process.env.AI_DEFAULT_MODEL ?? process.env.AI_MODEL;
 const FAST_MODEL_DEFAULT =
   process.env.AI_FAST_MODEL ?? DEFAULT_AI_MODEL;
 const PRO_MODEL_DEFAULT =
@@ -331,7 +331,7 @@ async function reduceCandidateSubset(
   options: {
     minTopics: number;
     maxTopics: number;
-    fastModel: string;
+    fastModel?: string;
     videoInfo?: Partial<VideoInfo>;
     segmentLabel?: string;
     language?: string;
@@ -491,7 +491,7 @@ async function runSinglePassTopicGeneration(
   transcript: TranscriptSegment[],
   transcriptWithTimestamps: string,
   fullText: string,
-  model: string,
+  model?: string,
   theme?: string,
   language?: string
 ): Promise<ParsedTopic[]> {
@@ -781,7 +781,7 @@ export async function generateTopicsFromTranscript(
 ): Promise<{
   topics: Topic[];
   candidates?: TopicCandidate[];
-  modelUsed: string;
+  modelUsed?: string;
 }> {
   const {
     videoInfo,
@@ -1385,7 +1385,7 @@ function promoteDistinctThemes(themes: string[], primaryCount = 3): string[] {
 export async function generateThemesFromTranscript(
   transcript: TranscriptSegment[],
   videoInfo?: Partial<VideoInfo>,
-  model: string = FAST_MODEL_DEFAULT,
+  model?: string,
   language?: string
 ): Promise<string[]> {
   if (!transcript || transcript.length === 0) {

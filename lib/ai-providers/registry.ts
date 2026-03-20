@@ -1,17 +1,52 @@
 import { createGeminiAdapter } from './gemini-adapter';
 import { createGrokAdapter } from './grok-adapter';
+import { createOpenAICompatibleAdapter } from './openai-compatible-adapter';
 import type { ProviderAdapter, ProviderGenerateParams, ProviderGenerateResult } from './types';
 
-type ProviderKey = 'grok' | 'gemini';
+/**
+ * Provider registry with support for:
+ *
+ * 1. Generic OpenAI-compatible provider (default) — works with any service
+ *    that exposes /chat/completions: OpenAI, Groq, Together, Mistral,
+ *    Ollama, vLLM, DeepSeek, Fireworks, etc.
+ *    Env: AI_API_KEY, AI_API_BASE_URL, AI_MODEL
+ *
+ * 2. Legacy provider-specific adapters (Gemini, Grok) — kept for backward
+ *    compatibility. Activated when their specific env vars are set.
+ *    Env: GEMINI_API_KEY or XAI_API_KEY
+ */
+
+type ProviderKey = 'openai-compatible' | 'grok' | 'gemini';
 
 type ProviderFactory = () => ProviderAdapter;
 
+const DEFAULT_MODEL = 'gpt-4o';
+const DEFAULT_BASE_URL = 'https://api.openai.com/v1';
+
+function createGenericAdapter(): ProviderAdapter {
+  const apiKey = process.env.AI_API_KEY;
+  if (!apiKey) {
+    throw new Error(
+      'AI_API_KEY is required. Set this environment variable to your LLM provider API key.'
+    );
+  }
+
+  return createOpenAICompatibleAdapter({
+    apiKey,
+    baseUrl: (process.env.AI_API_BASE_URL ?? DEFAULT_BASE_URL).replace(/\/$/, ''),
+    defaultModel: process.env.AI_MODEL ?? DEFAULT_MODEL,
+    providerName: process.env.AI_PROVIDER_NAME ?? 'openai-compatible',
+  });
+}
+
 const providerFactories: Record<ProviderKey, ProviderFactory> = {
+  'openai-compatible': createGenericAdapter,
   grok: createGrokAdapter,
   gemini: createGeminiAdapter,
 };
 
 const providerEnvGuards: Record<ProviderKey, () => string | undefined> = {
+  'openai-compatible': () => process.env.AI_API_KEY,
   grok: () => process.env.XAI_API_KEY,
   gemini: () => process.env.GEMINI_API_KEY,
 };
@@ -28,6 +63,10 @@ function resolveProviderKey(preferred?: string): ProviderKey {
     return envPreference as ProviderKey;
   }
 
+  // Auto-detect: generic first, then legacy providers
+  if (providerEnvGuards['openai-compatible']()) {
+    return 'openai-compatible';
+  }
   if (providerEnvGuards.grok()) {
     return 'grok';
   }
@@ -35,7 +74,7 @@ function resolveProviderKey(preferred?: string): ProviderKey {
     return 'gemini';
   }
 
-  return 'grok';
+  return 'openai-compatible';
 }
 
 export function getProviderKey(preferred?: string): ProviderKey {
@@ -119,7 +158,6 @@ export async function generateStructuredContent(
           return await fallbackAdapter.generate(rest);
         } catch (fallbackError) {
           console.error(`[AI Provider] Fallback provider ${fallbackKey} also failed:`, fallbackError);
-          // Throw the original error if fallback also fails
           throw error;
         }
       }
@@ -127,4 +165,3 @@ export async function generateStructuredContent(
     throw error;
   }
 }
-

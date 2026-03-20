@@ -22,7 +22,7 @@ interface ParsedDocumentTopic {
 }
 
 const DEFAULT_AI_MODEL =
-  process.env.AI_DEFAULT_MODEL ?? 'grok-4-1-fast-non-reasoning';
+  process.env.AI_DEFAULT_MODEL ?? process.env.AI_MODEL;
 const FAST_MODEL_DEFAULT =
   process.env.AI_FAST_MODEL ?? DEFAULT_AI_MODEL;
 
@@ -221,7 +221,7 @@ ${candidateBlock}
 async function runSinglePassDocumentTopics(
   fullText: string,
   segments: DocumentSegment[],
-  model: string,
+  model?: string,
   documentInfo?: Partial<DocumentInfo>,
   theme?: string
 ): Promise<ParsedDocumentTopic[]> {
@@ -306,7 +306,7 @@ ${formattedText}
 async function extractChunkCandidates(
   chunk: DocumentChunk,
   maxCandidates: number,
-  model: string,
+  model?: string,
   documentInfo?: Partial<DocumentInfo>,
   theme?: string
 ): Promise<CandidateDocTopic[]> {
@@ -368,7 +368,7 @@ async function reduceDocCandidates(
   options: {
     minTopics: number;
     maxTopics: number;
-    model: string;
+    model?: string;
     documentInfo?: Partial<DocumentInfo>;
   }
 ): Promise<ParsedDocumentTopic[]> {
