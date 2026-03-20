@@ -43,3 +43,27 @@ export const topQuoteSchema = z.object({
 });
 
 export const topQuotesSchema = z.array(topQuoteSchema).min(1).max(5);
+
+// ── Document schemas ──
+
+const documentLocationPattern = /^.{1,100}$/;
+
+export const documentTopicQuoteSchema = z.object({
+  location: z.string().regex(documentLocationPattern),
+  text: z.string().max(20000),
+});
+
+export const documentTopicGenerationSchema = z.array(
+  z.object({
+    title: z.string().max(2000),
+    quote: documentTopicQuoteSchema.optional(),
+  })
+);
+
+export const documentTakeawaySchema = z.object({
+  label: z.string().min(1).max(2000),
+  insight: z.string().min(1).max(10000),
+  locations: z.array(z.string().regex(documentLocationPattern)).min(1).max(2),
+});
+
+export const documentTakeawaysSchema = z.array(documentTakeawaySchema).min(4).max(6);

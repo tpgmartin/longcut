@@ -169,3 +169,63 @@ export type TranslationRequestHandler = (
   scenario?: TranslationScenario,
   targetLanguage?: string
 ) => Promise<string>;
+
+// ── Document types ──
+
+export interface DocumentSegment {
+  text: string;
+  charStart: number;
+  charEnd: number;
+  sectionTitle?: string;
+  pageNumber?: number;
+}
+
+export type DocumentFileType = 'pdf' | 'epub' | 'txt';
+
+export interface DocumentInfo {
+  documentId: string;
+  title: string;
+  author: string;
+  fileType: DocumentFileType;
+  fileName: string;
+  fileSize: number;
+  wordCount: number;
+  pageCount?: number;
+  chapterCount?: number;
+  language?: string;
+}
+
+export interface DocumentTopic {
+  id: string;
+  title: string;
+  description?: string;
+  segments: {
+    charStart: number;
+    charEnd: number;
+    text: string;
+    segmentIdx: number;
+    endSegmentIdx: number;
+    startCharOffset?: number;
+    endCharOffset?: number;
+    hasCompleteSentences?: boolean;
+    confidence?: number;
+  }[];
+  keywords?: string[];
+  quote?: {
+    location: string; // e.g. "Page 12" or "Section 3"
+    text: string;
+  };
+}
+
+export interface DocumentCitation {
+  number: number;
+  text: string;
+  charStart: number;
+  charEnd: number;
+  segmentIdx: number;
+  endSegmentIdx: number;
+  startCharOffset: number;
+  endCharOffset: number;
+}
+
+export type ContentType = 'video' | 'document';

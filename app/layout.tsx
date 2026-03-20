@@ -55,6 +55,12 @@ export default function RootLayout({
                   />
 
                 </Link>
+                <Link
+                  href="/document"
+                  className="pointer-events-auto text-[13px] font-medium text-[#787878] transition hover:text-[#3f3f3f]"
+                >
+                  Documents
+                </Link>
                 <div className="pointer-events-auto">
                   <UserMenu />
                 </div>
